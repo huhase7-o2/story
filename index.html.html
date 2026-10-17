@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>몽토 스토리 시뮬레이션</title>
+    <style>
+        body { margin: 0; padding: 0; background-color: #1a1a1a; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Malgun Gothic', sans-serif; }
+        #game-container { width: 800px; height: 600px; position: relative; background-color: #000; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+        #background { width: 100%; height: 100%; position: absolute; object-fit: cover; z-index: 1; }
+        #character { height: 80%; position: absolute; bottom: 20%; left: 50%; transform: translateX(-50%); z-index: 2; }
+        #ui-layer { position: absolute; bottom: 0; width: 100%; height: 30%; z-index: 3; display: flex; flex-direction: column; justify-content: flex-end; }
+        #dialogue-box { background: rgba(0, 0, 0, 0.75); border-top: 3px solid #fff; color: #fff; padding: 20px; height: 120px; box-sizing: border-box; position: relative; }
+        #speaker-name { font-weight: bold; font-size: 1.2em; color: #ffd700; margin-bottom: 10px; }
+        #dialogue-text { font-size: 1.1em; line-height: 1.5; }
+        #choices-container { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); z-index: 4; display: flex; flex-direction: column; gap: 10px; width: 80%; }
+        .choice-btn { background: rgba(255, 255, 255, 0.9); border: 2px solid #333; padding: 15px; font-size: 1.1em; cursor: pointer; border-radius: 5px; transition: background 0.2s; text-align: center; }
+        .choice-btn:hover { background: #ffd700; }
+    </style>
+</head>
+<body>
+<div id="game-container">
+    <img id="background" src="https://via.placeholder.com/800x600/333333/ffffff?text=Background" alt="배경">
+    <img id="character" src="https://via.placeholder.com/300x500/cccccc/000000?text=Character" alt="캐릭터">
+    <div id="choices-container"></div>
+    <div id="ui-layer">
+        <div id="dialogue-box">
+            <div id="speaker-name">화자 이름</div>
+            <div id="dialogue-text">대화 내용이 이곳에 표시됩니다.</div>
+        </div>
+    </div>
+</div>
+<script>
+    const storyData = {
+        "start": {
+            speaker: "몽토", text: "안녕? 이곳은 몽토 스토리의 시작점이야. 앞으로 어떤 선택을 할지 기대되는걸?",
+            bgImg: "https://via.placeholder.com/800x600/2c3e50/ffffff?text=Forest+Background", charImg: "https://via.placeholder.com/300x500/ecf0f1/2c3e50?text=Mongto+(Basic)",
+            choices: [ { text: "반가워! 같이 모험을 떠나자.", nextNode: "adventure" }, { text: "여긴 어디야? 난 돌아갈래.", nextNode: "escape" } ]
+        },
+        "adventure": {
+            speaker: "몽토", text: "좋아! 그럼 숲의 안쪽으로 들어가보자. 저기 무언가 반짝이는 게 있어.",
+            bgImg: "https://via.placeholder.com/800x600/27ae60/ffffff?text=Deep+Forest", charImg: "https://via.placeholder.com/300x500/f1c40f/2c3e50?text=Mongto+(Happy)",
+            choices: [ { text: "반짝이는 걸 확인하러 간다.", nextNode: "check_item" } ]
+        },
+        "escape": {
+            speaker: "몽토", text: "앗... 벌써 가는 거야? 아쉽지만 다음에 또 봐!",
+            bgImg: "https://via.placeholder.com/800x600/000000/ffffff?text=The+End", charImg: "",
+            choices: [ { text: "처음으로 돌아가기", nextNode: "start" } ]
+        },
+        "check_item": {
+            speaker: "시스템", text: "오래된 마법석을 발견했습니다! (스토리 계속 추가 가능...)",
+            bgImg: "https://via.placeholder.com/800x600/8e44ad/ffffff?text=Magic+Cave", charImg: "https://via.placeholder.com/300x500/ecf0f1/2c3e50?text=Mongto+(Surprised)",
+            choices: [ { text: "처음부터 다시 테스트하기", nextNode: "start" } ]
+        }
+    };
+    const bgElement = document.getElementById("background");
+    const charElement = document.getElementById("character");
+    const nameElement = document.getElementById("speaker-name");
+    const textElement = document.getElementById("dialogue-text");
+    const choicesContainer = document.getElementById("choices-container");
+    function renderNode(nodeId) {
+        const node = storyData[nodeId];
+        if (!node) return;
+        nameElement.textContent = node.speaker;
+        textElement.textContent = node.text;
+        if (node.bgImg) bgElement.src = node.bgImg;
+        if (node.charImg) { charElement.src = node.charImg; charElement.style.display = "block"; } else { charElement.style.display = "none"; }
+        choicesContainer.innerHTML = "";
+        if (node.choices && node.choices.length > 0) {
+            node.choices.forEach(choice => {
+                const btn = document.createElement("button");
+                btn.className = "choice-btn"; btn.textContent = choice.text;
+                btn.onclick = () => renderNode(choice.nextNode);
+                choicesContainer.appendChild(btn);
+            });
+        }
+    }
+    renderNode("start");
+</script>
+</body>
+</html>
