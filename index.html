@@ -80,7 +80,6 @@
     </div>
     
     <div id="audio-controls">
-        <!-- bgm.mp3 파일을 찾아 재생하도록 설정 -->
         <audio id="bgm" src="bgm.mp3" loop></audio>
     </div>
 </div>
@@ -104,7 +103,7 @@
         },
         "intro_3": {
             speaker: "", text: "(눈을 깜빡거리며 주변을 둘러본다)",
-            bgImg: "gray", // 회색 단색 배경
+            bgImg: "gray", 
             charImg: "", effect: "blink_and_blur",
             nextNode: "name_input"
         },
@@ -116,7 +115,7 @@
         "prologue": {
             speaker: "시스템", text: () => `${playerName}(은)는 부서진 방독면을 얼굴에 쓰고 넝마를 두른 채 살아가는 짐승이다.`,
             bgImg: "keep", 
-            charImg: "1.png", // 1번 캐릭터 이미지 표시
+            charImg: "1.png", // 준비해주신 투명화(누끼)된 1.png 이미지 바로 불러오기
             type: "normal", nextNode: "route_select"
         },
         "route_select": {
@@ -143,46 +142,12 @@
     const bgm = document.getElementById("bgm");
     const gameContainer = document.getElementById("game-container");
 
-    // #00FFFF 투명(누끼) 처리 함수
-    function applyChromaKey(imgSrc, callback) {
-        if (!imgSrc || imgSrc === "keep") { callback(null); return; }
-        
-        const img = new Image();
-        img.crossOrigin = "Anonymous";
-        img.onload = function() {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width; canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            
-            try {
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const data = imageData.data;
-                for(let i=0; i<data.length; i+=4) {
-                    if(data[i] < 50 && data[i+1] > 200 && data[i+2] > 200) {
-                        data[i+3] = 0; // 투명화
-                    }
-                }
-                ctx.putImageData(imageData, 0, 0);
-                callback(canvas.toDataURL());
-            } catch(e) {
-                console.warn("CORS 이슈 발생, 원본 이미지 사용:", e);
-                callback(img.src);
-            }
-        };
-        img.onerror = function() {
-            console.error("이미지를 찾을 수 없습니다: " + imgSrc);
-        }
-        img.src = imgSrc;
-    }
-
     function renderNode(nodeId) {
         const node = storyData[nodeId];
         if (!node) return;
         currentNodeId = nodeId;
 
-        // BGM 재생 시도
-        if (bgm.paused) { bgm.play().catch(e => console.log("BGM 재생 대기중 (클릭 필요)")); }
+        if (bgm.paused) { bgm.play().catch(e => console.log("BGM 재생 대기중")); }
 
         textElement.innerHTML = "";
         const fullText = typeof node.text === "function" ? node.text() : node.text;
@@ -210,7 +175,6 @@
             }, 3000);
         }
 
-        // 회색 단색 배경 적용
         if (node.bgImg === "gray") {
             bgElement.style.display = "none";
             gameContainer.style.backgroundColor = "#444444";
@@ -220,15 +184,11 @@
             bgElement.style.opacity = "1";
         }
 
-        // 캐릭터 크로마키(누끼) 적용
+        // ⚠️ 크로마키(자동누끼) 기능을 완전히 제거하고 이미지를 다이렉트로 안전하게 불러옵니다!
         if (node.charImg !== "keep") {
             if (node.charImg) {
-                applyChromaKey(node.charImg, (processedImgSrc) => {
-                    if(processedImgSrc) {
-                        charElement.src = processedImgSrc;
-                        charElement.style.opacity = "1";
-                    }
-                });
+                charElement.src = node.charImg;
+                charElement.style.opacity = "1";
             } else {
                 charElement.style.opacity = "0";
             }
